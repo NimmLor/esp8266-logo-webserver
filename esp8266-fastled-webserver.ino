@@ -15,27 +15,45 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 //#define FASTLED_ALLOW_INTERRUPTS 1
 //#define INTERRUPT_THRESHOLD 1
 #define FASTLED_INTERRUPT_RETRY_COUNT 0
-
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
-
 extern "C" {
 #include "user_interface.h"
 }
-
 #include <ESP8266WiFi.h>
-//#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
-//#include <WebSocketsServer.h>
 #include <FS.h>
 #include <EEPROM.h>
-//#include <IRremoteESP8266.h>
 #include "GradientPalettes.h"
+
+
+/*######################## MAIN CONFIG ########################*/
+#define DATA_PIN      D4
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+
+
+#define RING_LENGTH 24
+#define DOUBLE_STRIP_LENGTH 2
+#define DOT_LENGTH 1
+#define ITALIC_STRIP_LENGTH 2
+const int twpOffsets[] = {2+1+2,0,2,4};
+
+/*###################### MAIN CONFIG END ######################*/
+
+
+
+
+
+
+
+
+
+
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -52,10 +70,8 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-#define DATA_PIN      D5
-#define LED_TYPE      WS2811
-#define COLOR_ORDER   RGB
-#define NUM_LEDS      200
+
+#define NUM_LEDS      (RING_LENGTH+DOT_LENGTH+DOUBLE_STRIP_LENGTH+ITALIC_STRIP_LENGTH)
 
 #define MILLI_AMPS         2000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
@@ -143,6 +159,8 @@ typedef PatternAndName PatternAndNameList[];
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
 PatternAndNameList patterns = {
+  { trench,                 "Trench" },
+
   { pride,                  "Pride" },
   { colorWaves,             "Color Waves" },
 
@@ -1265,4 +1283,57 @@ void palettetest( CRGB* ledarray, uint16_t numleds, const CRGBPalette16& gCurren
   static uint8_t startindex = 0;
   startindex--;
   fill_palette( ledarray, numleds, startindex, (256 / NUM_LEDS) + 1, gCurrentPalette, 255, LINEARBLEND);
+}
+
+
+void twp()
+{
+    // a colored dot sweeping back and forth, with fading trails
+    fadeToBlackBy(leds+RING_LENGTH, DOUBLE_STRIP_LENGTH, 10);
+    int pos = beatsin16(speed/10.0, 0, DOUBLE_STRIP_LENGTH);
+    static int prevpos = 0;
+    CRGB color = ColorFromPalette(palettes[currentPaletteIndex], gHue, 255);
+    if (pos < prevpos) {
+      fill_solid(leds + pos + RING_LENGTH, (prevpos - pos) + 1, color);
+    }
+    else {
+      fill_solid(leds + prevpos + RING_LENGTH, (pos - prevpos) + 1, color);
+    }
+    prevpos = pos;
+}
+
+void trench()
+{
+  static uint8_t    numdots = 4; // Number of dots in use.
+  static uint8_t   faderate = 2; // How long should the trails be. Very low value = longer trails.
+  static uint8_t     hueinc = 255 / numdots - 1; // Incremental change in hue between each dot.
+  static uint8_t    thishue = 42; // Starting hue.
+  static uint8_t     curhue = 0; // The current hue
+  static uint8_t    thissat = 255; // Saturation of the colour.
+  static uint8_t thisbright = 255; // How bright should the LED/display be.
+  static uint8_t   basebeat = 5; // Higher = faster movement.
+
+  static uint8_t lastSecond = 99;  // Static variable, means it's only defined once. This is our 'debounce' variable.
+  uint8_t secondHand = (millis() / 1000) % 30; // IMPORTANT!!! Change '30' to a different value to change duration of the loop.
+
+  if (lastSecond != secondHand) { // Debounce to make sure we're not repeating an assignment.
+    lastSecond = secondHand;
+    switch (secondHand) {
+    case  0: numdots = 1; basebeat = 20; hueinc = 2; faderate = 2; thishue = random(40, 44); break; // You can change values here, one at a time , or altogether.
+    case 10: numdots = 4; basebeat = 10; hueinc = 2; faderate = 8; thishue = random(40,44); break;
+    case 20: numdots = 8; basebeat = 3; hueinc = 0; faderate = 8; thishue = random(40, 44); break; // Only gets called once, and not continuously for the next several seconds. Therefore, no rainbows.
+    case 30: break;
+    }
+  }
+
+  // Several colored dots, weaving in and out of sync with each other
+  curhue = thishue; // Reset the hue values.
+  fadeToBlackBy(leds, NUM_LEDS, faderate);
+  for (int i = 0; i < numdots; i++) {
+    leds[beatsin16(basebeat + i + numdots, twpOffsets[0], RING_LENGTH+twpOffsets[0])] += CHSV(curhue, thissat, thisbright);
+    leds[beatsin16(basebeat + i + numdots, twpOffsets[1], DOUBLE_STRIP_LENGTH + twpOffsets[1])] += CHSV(curhue, thissat, thisbright);
+    leds[beatsin16(basebeat + i + numdots, twpOffsets[2], DOT_LENGTH + twpOffsets[2])] += CHSV(curhue, thissat, thisbright);
+    leds[beatsin16(basebeat + i + numdots, twpOffsets[3], ITALIC_STRIP_LENGTH + twpOffsets[3])] += CHSV(curhue, thissat, thisbright);
+    curhue += hueinc;
+  }
 }
