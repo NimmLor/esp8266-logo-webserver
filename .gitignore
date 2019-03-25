@@ -38,3 +38,6 @@
 *.filters
 *.user
 __vm/
+Release/
+
+Secrets.h
