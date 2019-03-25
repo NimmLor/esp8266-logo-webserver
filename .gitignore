@@ -39,5 +39,5 @@
 *.user
 __vm/
 Release/
-
+.vs/
 Secrets.h
