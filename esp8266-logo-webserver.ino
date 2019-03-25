@@ -37,7 +37,7 @@ extern "C" {
 #define COLOR_ORDER   GRB   // Change this if colors are swapped (in my case, red was swapped with green)
 
 // Choose your logo below
-//#define TWENTYONEPILOTS
+#define TWENTYONEPILOTS
 
 /*
   New Logos will be released soon, you can request any "ring" logo in the comments,
