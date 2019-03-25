@@ -37,7 +37,7 @@ extern "C" {
 #define COLOR_ORDER   GRB   // Change this if colors are swapped (in my case, red was swapped with green)
 
 // Choose your logo below
-#define TWENTYONEPILOTS
+//#define TWENTYONEPILOTS
 
 /*
   New Logos will be released soon, you can request any "ring" logo in the comments,
@@ -75,7 +75,8 @@ The array below will determine the order of the wiring,
   the first value is for the ring, I've hooked it up after the inner part,
   so it's the start value is the total length of all other pixels (2+1+2)
 the second one is for the straight double line
-to be continued soon....
+  in my case it was the first one that is connected to the esp8266,
+
 */
 const int twpOffsets[] = { 5,0,2,3 };   
 #endif
@@ -1348,6 +1349,7 @@ void logo_static()
 }
 
 
+#ifdef TWENTYONEPILOTS
 void twp_static()
 {
   fill_solid(leds+ twpOffsets[1], DOUBLE_STRIP_LENGTH, STATIC_LOGO_COLOR);
@@ -1396,7 +1398,7 @@ void twp()  // twenty one pilots
   fadeToBlackBy(leds +twpOffsets[0], DOUBLE_STRIP_LENGTH+DOT_LENGTH+ITALIC_STRIP_LENGTH, 50);
   int16_t myspeed = 30 + speed*1.5;
   if (myspeed > 255 || myspeed < 0)myspeed = 255;
-  int pos = beatsin16(myspeed, twpOffsets[1], DOUBLE_STRIP_LENGTH + DOT_LENGTH + ITALIC_STRIP_LENGTH);
+  int pos = beatsin16(myspeed, twpOffsets[1], twpOffsets[1] + DOUBLE_STRIP_LENGTH + DOT_LENGTH + ITALIC_STRIP_LENGTH - 1);
   static int prevpos = 0;
   CRGB color = STATIC_LOGO_COLOR;
   if (pos < prevpos) {
@@ -1407,5 +1409,6 @@ void twp()  // twenty one pilots
   }
   prevpos = pos;
 }
+#endif // TWENTYONEPILOTS
 
 /*###################### LOGO FUNCTIONS END ######################*/
