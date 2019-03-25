@@ -35,6 +35,8 @@ extern "C" {
 #define DATA_PIN      D4    // Should be GPIO02 on other boards like the NodeMCU
 #define LED_TYPE      WS2812B   // You might also use a WS2811 or any other strip that is fastled compatible 
 #define COLOR_ORDER   GRB   // Change this if colors are swapped (in my case, red was swapped with green)
+#define MILLI_AMPS         8000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+#define RANDOM_AUTOPLAY_PATTERN   // if enabled the next pattern for autoplay is choosen at random, if commented out patterns will play in order
 
 // Choose your logo below
 #define TWENTYONEPILOTS
@@ -76,23 +78,13 @@ The array below will determine the order of the wiring,
   so it's the start value is the total length of all other pixels (2+1+2)
 the second one is for the straight double line
   in my case it was the first one that is connected to the esp8266,
-
+the third one is for the dot and the fourth one for the angled double line
+if you have connected the ring first it should look like this: const int twpOffsets[] = { 0,24,26,27 };  
 */
 const int twpOffsets[] = { 5,0,2,3 };   
-#endif
-
-
-
-
-
+#endif  // TWENTYONEPILOTS
 
 /*###################### LOGO CONFIG END ######################*/
-
-
-
-
-
-
 
 
 
@@ -115,7 +107,7 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #define NUM_LEDS      (RING_LENGTH+DOT_LENGTH+DOUBLE_STRIP_LENGTH+ITALIC_STRIP_LENGTH)
 
-#define MILLI_AMPS         8000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
 const bool apMode = false;
@@ -139,19 +131,19 @@ uint8_t brightnessIndex = 0;
 
 // ten seconds per color palette makes a good demo
 // 20-120 is better for deployment
-uint8_t secondsPerPalette = 10;
+uint8_t secondsPerPalette = 20;
 
 // COOLING: How much does the air cool as it rises?
 // Less cooling = taller flames.  More cooling = shorter flames.
 // Default 50, suggested range 20-100
-uint8_t cooling = 49;
+uint8_t cooling = 10;
 
 // SPARKING: What chance (out of 255) is there that a new spark will be lit?
 // Higher chance = more roaring fire.  Lower chance = more flickery fire.
 // Default 120, suggested range 50-200.
-uint8_t sparking = 60;
+uint8_t sparking = 30;
 
-uint8_t speed = 30;
+uint8_t speed = 40;
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -918,11 +910,29 @@ void setSolidColor(uint8_t r, uint8_t g, uint8_t b)
 // increase or decrease the current pattern number, and wrap around at the ends
 void adjustPattern(bool up)
 {
+#ifdef RANDOM_AUTOPLAY_PATTERN
+  if (autoplay == 1)
+  {
+    uint8_t lastpattern = currentPatternIndex;
+    while (currentPatternIndex == lastpattern)
+    {
+      uint8_t newpattern = random8(0, patternCount-1);
+      if (newpattern != lastpattern)currentPatternIndex = newpattern;
+    }
+  }
+#else // RANDOM_AUTOPLAY_PATTERN
   if (up)
     currentPatternIndex++;
   else
     currentPatternIndex--;
-
+#endif
+  if (autoplay == 0)
+  {
+    if (up)
+      currentPatternIndex++;
+    else
+      currentPatternIndex--;
+  }
   // wrap around at the ends
   if (currentPatternIndex < 0)
     currentPatternIndex = patternCount - 1;
