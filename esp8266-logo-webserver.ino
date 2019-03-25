@@ -32,10 +32,10 @@ extern "C" {
 
 
 /*######################## MAIN CONFIG ########################*/
-#define DATA_PIN      D4    // Should be GPIO02 on other boards like the NodeMCU
-#define LED_TYPE      WS2812B   // You might also use a WS2811 or any other strip that is fastled compatible 
-#define COLOR_ORDER   GRB   // Change this if colors are swapped (in my case, red was swapped with green)
-#define MILLI_AMPS         8000 // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
+#define DATA_PIN      D4          // Should be GPIO02 on other boards like the NodeMCU
+#define LED_TYPE      WS2812B     // You might also use a WS2811 or any other strip that is fastled compatible 
+#define COLOR_ORDER   GRB         // Change this if colors are swapped (in my case, red was swapped with green)
+#define MILLI_AMPS    2000        // IMPORTANT: set the max milli-Amps of your power supply (4A = 4000mA)
 #define RANDOM_AUTOPLAY_PATTERN   // if enabled the next pattern for autoplay is choosen at random, if commented out patterns will play in order
 
 // Choose your logo below
@@ -53,6 +53,7 @@ extern "C" {
    - Burger King
    - Thingiverse
    - Instagram
+   - Trap Nation
   I will prioritise logos that are suggested to me
 */
 
