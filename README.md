@@ -34,8 +34,6 @@ I would recommend buying a strip with 60 leds/m or more.
 
 
 
-
-
 Features
 --------
 * Turn the Logo on and off
@@ -80,13 +78,70 @@ The app depends on the following libraries. They must either be downloaded from 
 
 Download the app code from GitHub using the **Releases** section on [GitHub](https://github.com/NimmLor/esp8266-logo-webserver/releases) and download the ZIP file. Decompress the ZIP file in your Arduino sketch folder. Rename the folder from *esp8266-logo-webserver-master* to *esp8266-logo-webserver*
 
+### Configuration
+
+First enter the pin where the *Data* line is connected to, in my case it's pin D4 (GPIO02).
+
+`#define DATA_PIN D4`
+
+The *LED_TYPE* can be set to any FastLED compatible strip. Most common is the WS2812B strip.
+
+If colors appear to be swapped you should change the color order. For me, red and green was swapped so i had to change the color order from *RGB* to *GRB*.
+
+You should also set the milli-amps of your power supply to prevent power overloading. I am using the regular USB connection so i defined 1500mA.
+
+`#define MILLI_AMPS 1500`
+
+`#define RANDOM_AUTOPLAY_PATTERN` constant configures if the patterns in autoplay should be choosen at random, if you don't want this functionality just add '\\\' in the front.
+
+Another **important** step is to create the **Secrets.h** file. Create a new tab (**ctrl**+**shift**+**n**) and name it *Secrets.h*, this file contains your WIFI credentials and it's structure must look like this:
+
+``````c++
+// AP mode password
+const char WiFiAPPSK[] = "WIFI_NAME_IF_IN_AP_MODE";
+
+// Wi-Fi network to connect to (if not in AP mode)
+char* ssid = "YOUR_WIFI_NAME";
+char* password = "YOUR_WIFI_PASSWORD";
+``````
+
+
+
+#### Choosing your logo
+
+Currently only the *Twenty One Pilots* is supported. I'm planning on releasing more logos soon.
+
+To enable your logo uncomment just **one** line of the logos.
+
+Afterwards head to the choosen logo in the *LOGO CONFIG* section.
+Set all values according to the comments in the code, don't comment out any lines.
+
+-----------
+
+New Logos will be released soon, you can request any "*ring*" logo in the [comments](<https://www.thingiverse.com/thing:3516493/comments>),
+or direct message me on [thingiverse](https://www.thingiverse.com/Surrbradl08/about),
+or on [instagram](https://www.instagram.com/surrbradl08/).
+
+Currently I'm thinking of building the following logos
+ - Avengers
+ - Apple
+ - Dell
+ - Burger King
+ - Thingiverse (probablys the next one)
+ - Instagram
+ - Trap Nation
+
+*I will prioritise logos that are suggested to me.*
+
+### Uploading
+
 The web app needs to be uploaded to the ESP8266's SPIFFS.  You can do this within the Arduino IDE after installing the [Arduino ESP8266FS tool](http://esp8266.github.io/Arduino/versions/2.3.0/doc/filesystem.html#uploading-files-to-file-system). An alternative would be to install the [Visual Micro](https://www.visualmicro.com/) plugin for Visual Studio.
 
 With ESP8266FS installed upload the web app using `ESP8266 Sketch Data Upload` command in the Arduino Tools menu.
 
 
 
-### Technical
+## Technical
 
 Patterns are requested by the app from the ESP8266, so as new patterns are added, they're automatically listed in the app.
 
@@ -96,7 +151,7 @@ The web app is a single page app that uses [jQuery](https://jquery.com) and [Boo
 
 The only drawback to SPIFFS that I've found so far is uploading the files can be extremely slow, requiring several minutes, sometimes regardless of how large the files are.  It can be so slow that I've been just developing the web app and debugging locally on my desktop (with a hard-coded IP for the ESP8266), before uploading to SPIFFS and testing on the ESP8266.
 
-#### Compression
+### Compression
 
 The web app files can be gzip compressed before uploading to SPIFFS by running the following command:
 
@@ -106,6 +161,6 @@ The ESP8266WebServer will automatically serve any .gz file.  The file index.htm.
 
 `gunzip -r data/fonts/`
 
-#### REST Web services
+### REST Web services
 
 The firmware implements basic [RESTful web services](https://en.wikipedia.org/wiki/Representational_state_transfer) using the ESP8266WebServer library.  Current values are requested with HTTP GETs, and values are set with POSTs using query string parameters.  It can run in connected or standalone access point modes.
