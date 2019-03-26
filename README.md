@@ -3,7 +3,9 @@ Fastled Logo Webserver
 
 This is a fork of [jasoncoon's esp8266 fastled webserver](https://github.com/jasoncoon/esp8266-fastled-webserver) that was adapted to control the colors of my  [Backlit Twenty One Pilots Logo](https://www.thingiverse.com/thing:3516493).
 
-![](preview.gif)
+[![https://youtu.be/R0lnP2zpz5U](preview.gif)](https://youtu.be/R0lnP2zpz5U)
+
+###### *click on the image to get to the youtube video*
 
 Hardware
 --------
