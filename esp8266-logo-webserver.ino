@@ -39,7 +39,8 @@ extern "C" {
 #define RANDOM_AUTOPLAY_PATTERN   // if enabled the next pattern for autoplay is choosen at random, if commented out patterns will play in order
 
 // Choose your logo below
-#define TWENTYONEPILOTS
+//#define TWENTYONEPILOTS
+#define THINGIVERSE
 
 /*
   New Logos will be released soon, you can request any "ring" logo in the comments,
@@ -85,6 +86,18 @@ if you have connected the ring first it should look like this: const int twpOffs
 const int twpOffsets[] = { 5,0,2,3 };   
 #endif  // TWENTYONEPILOTS
 
+#ifdef THINGIVERSE
+  #define RING_LENGTH 24      // amount of pixels for the Ring (should be 24)
+  #define HORIZONTAL_LENGTH 3   // amount of pixels used for the straight double line
+  #define VERTICAL_LENGTH 2   // amount of pixels used for the straight double line
+  #define ANIMATION_NAME "Thingiverse"    // name for the Logo animation, displayed on the webserver
+  #define ANIMATION_NAME_STATIC "Thingiverse - Static"    // logo for the static logo, displayed on the webserver
+  #define ANIMATION_RING_DURATION 30 // longer values result into a longer loop duration
+  #define STATIC_RING_COLOR CRGB(0,149,255)   // Color for the outer ring in static mode
+  #define STATIC_LOGO_COLOR CRGB(0,149,255)   // Color for the inner logo in static mode
+  #define RINGFIRST false // change this to <true> if you have wired the ring first
+#endif  // TWENTYONEPILOTS
+
 /*###################### LOGO CONFIG END ######################*/
 
 
@@ -105,9 +118,12 @@ ESP8266HTTPUpdateServer httpUpdateServer;
 
 #include "FSBrowser.h"
 
-
-#define NUM_LEDS      (RING_LENGTH+DOT_LENGTH+DOUBLE_STRIP_LENGTH+ITALIC_STRIP_LENGTH)
-
+#ifdef TWENTYONEPILOTS
+  #define NUM_LEDS      (RING_LENGTH+DOT_LENGTH+DOUBLE_STRIP_LENGTH+ITALIC_STRIP_LENGTH)
+#endif
+#ifdef THINGIVERSE
+  #define NUM_LEDS      (RING_LENGTH+HORIZONTAL_LENGTH+VERTICAL_LENGTH)
+#endif
 
 #define FRAMES_PER_SECOND  120  // here you can control the speed. With the Access Point / Web Server the animations run a bit slower.
 
@@ -1350,6 +1366,9 @@ void logo()
 #ifdef TWENTYONEPILOTS
   twp();
 #endif // TWENTYONEPILOTS
+#ifdef THINGIVERSE
+  thingiverse();
+#endif
 }
 
 void logo_static()
@@ -1357,6 +1376,9 @@ void logo_static()
 #ifdef TWENTYONEPILOTS
   twp_static();
 #endif // TWENTYONEPILOTS
+#ifdef THINGIVERSE
+  thingiverse_static();
+#endif
 }
 
 
@@ -1375,7 +1397,7 @@ void twp()  // twenty one pilots
   static uint8_t   faderate = 4; // How long should the trails be. Very low value = longer trails.
   static uint8_t     hueinc = 255 / numdots - 1; // Incremental change in hue between each dot.
   static uint8_t    thishue = 42; // Starting hue.
-  static uint8_t     curhue = 0; // The current hue
+  static uint8_t     curhue = 42; // The current hue
   static uint8_t    thissat = 255; // Saturation of the colour.
   static uint8_t thisbright = 255; // How bright should the LED/display be.
   static uint8_t   basebeat = 5; // Higher = faster movement.
@@ -1421,5 +1443,92 @@ void twp()  // twenty one pilots
   prevpos = pos;
 }
 #endif // TWENTYONEPILOTS
+
+
+#ifdef THINGIVERSE
+void thingiverse_static()
+{
+  if (RINGFIRST)
+  {
+    fill_solid(leds , RING_LENGTH, STATIC_RING_COLOR);
+    fill_solid(leds + RING_LENGTH, HORIZONTAL_LENGTH, STATIC_LOGO_COLOR);
+    fill_solid(leds + RING_LENGTH + HORIZONTAL_LENGTH, VERTICAL_LENGTH, STATIC_LOGO_COLOR);
+  }
+  else
+  {
+    fill_solid(leds, HORIZONTAL_LENGTH, STATIC_LOGO_COLOR);
+    fill_solid(leds + HORIZONTAL_LENGTH, VERTICAL_LENGTH, STATIC_LOGO_COLOR);
+    fill_solid(leds + HORIZONTAL_LENGTH + VERTICAL_LENGTH, RING_LENGTH, STATIC_RING_COLOR);
+  }
+}
+
+void thingiverse()  // twenty one pilots
+{
+  static uint8_t    numdots = 4; // Number of dots in use.
+  static uint8_t   faderate = 4; // How long should the trails be. Very low value = longer trails.
+  static uint8_t     hueinc = 255 / numdots - 1; // Incremental change in hue between each dot.
+  static uint8_t    thishue = 82; // Starting hue.
+  static uint8_t     curhue = 82; // The current hue
+  static uint8_t    thissat = 255; // Saturation of the colour.
+  static uint8_t thisbright = 255; // How bright should the LED/display be.
+  static uint8_t   basebeat = 5; // Higher = faster movement.
+
+  static uint8_t lastSecond = 99;  // Static variable, means it's only defined once. This is our 'debounce' variable.
+  uint8_t secondHand = (millis() / 1000) % ANIMATION_RING_DURATION; // IMPORTANT!!! Change '30' to a different value to change duration of the loop.
+
+  if (lastSecond != secondHand) { // Debounce to make sure we're not repeating an assignment.
+    lastSecond = secondHand;
+    switch (secondHand) {
+    case  0: numdots = 1; basebeat = 20; hueinc = 2; faderate = 4; thishue = random(143, 147); break; // You can change values here, one at a time , or altogether.
+    case 10: numdots = 4; basebeat = 10; hueinc = 2; faderate = 8; thishue = random(142, 148); break;
+    case 20: numdots = 8; basebeat = 3; hueinc = 0; faderate = 8; thishue = random(143, 147); break; // Only gets called once, and not continuously for the next several seconds. Therefore, no rainbows.
+    case 30: break;
+    }
+  }
+
+  // Several colored dots, weaving in and out of sync with each other
+  curhue = thishue; // Reset the hue values.
+  fadeToBlackBy(leds, NUM_LEDS, faderate);
+  for (int i = 0; i < numdots; i++) {
+    if(RINGFIRST)leds[beatsin16(basebeat + i + numdots, 0, RING_LENGTH)] += CHSV(curhue, thissat, thisbright);
+    else leds[beatsin16(basebeat + i + numdots, VERTICAL_LENGTH + HORIZONTAL_LENGTH, RING_LENGTH + VERTICAL_LENGTH + HORIZONTAL_LENGTH)] += CHSV(curhue, thissat, thisbright);
+    curhue += hueinc;
+  }
+
+  // sinelone for the lines
+  /*
+  fadeToBlackBy(leds + twpOffsets[0], DOUBLE_STRIP_LENGTH + DOT_LENGTH + ITALIC_STRIP_LENGTH, 50);
+  int16_t myspeed = 30 + speed * 1.5;
+  if (myspeed > 255 || myspeed < 0)myspeed = 255;
+  int pos = beatsin16(myspeed, twpOffsets[1], twpOffsets[1] + DOUBLE_STRIP_LENGTH + DOT_LENGTH + ITALIC_STRIP_LENGTH - 1);
+  static int prevpos = 0;
+  CRGB color = STATIC_LOGO_COLOR;
+  if (pos < prevpos) {
+    fill_solid(leds + pos, (prevpos - pos) + 1, color);
+  }
+  else {
+    fill_solid(leds + prevpos, (pos - prevpos) + 1, color);
+  }
+  prevpos = pos;
+  */
+  //uint8_t b = beatsin8(10, 200, 255);
+  uint8_t b = 255;
+  uint8_t pos = 0;
+  if (RINGFIRST)
+  {
+    pos = beatsin8(60, RING_LENGTH, RING_LENGTH + VERTICAL_LENGTH + HORIZONTAL_LENGTH);
+    fadeToBlackBy(leds + RING_LENGTH, RING_LENGTH+VERTICAL_LENGTH + HORIZONTAL_LENGTH, 0);
+  }
+  else
+  {
+    pos = beatsin8(60, 0, VERTICAL_LENGTH + HORIZONTAL_LENGTH);
+    fadeToBlackBy(leds, VERTICAL_LENGTH + HORIZONTAL_LENGTH, 0);
+  }
+  //if (pos == 0 && RINGFIRST == false)fadeToBlackBy(leds, 1, 50);
+  //else if(pos == RING_LENGTH && RINGFIRST == true)fadeToBlackBy(leds+RING_LENGTH, 1, 50);
+  leds[pos] = CHSV(145, 255, b);
+  
+}
+#endif THINGIVERSE
 
 /*###################### LOGO FUNCTIONS END ######################*/
