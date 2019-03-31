@@ -51,8 +51,7 @@ extern "C" {
    - Avengers
    - Apple
    - Dell
-   - Burger King
-   - Thingiverse
+   - Burger King (probably next)
    - Instagram
    - Trap Nation
   I will prioritise logos that are suggested to me
@@ -68,7 +67,7 @@ extern "C" {
   #define DOUBLE_STRIP_LENGTH 2   // amount of pixels used for the straight double line
   #define DOT_LENGTH 1  // amount of pixels used for the dot
   #define ITALIC_STRIP_LENGTH 2   // amount of pixels used for the 
-  #define ANIMATION_NAME "Twenty One Pilots"    // name for the Logo animation, displayed on the webserver
+  #define ANIMATION_NAME "Twenty One Pilots - Animated"    // name for the Logo animation, displayed on the webserver
   #define ANIMATION_NAME_STATIC "Twenty One Pilots - Static"    // logo for the static logo, displayed on the webserver
   #define ANIMATION_RING_DURATION 30 // longer values result into a longer loop duration
   #define STATIC_RING_COLOR CRGB(222,255,5)   // Color for the outer ring in static mode
@@ -90,13 +89,14 @@ const int twpOffsets[] = { 5,0,2,3 };
   #define RING_LENGTH 24      // amount of pixels for the Ring (should be 24)
   #define HORIZONTAL_LENGTH 3   // amount of pixels used for the straight double line
   #define VERTICAL_LENGTH 2   // amount of pixels used for the straight double line
-  #define ANIMATION_NAME "Thingiverse"    // name for the Logo animation, displayed on the webserver
+  #define ANIMATION_NAME "Thingiverse - Animated"    // name for the Logo animation, displayed on the webserver
   #define ANIMATION_NAME_STATIC "Thingiverse - Static"    // logo for the static logo, displayed on the webserver
   #define ANIMATION_RING_DURATION 30 // longer values result into a longer loop duration
   #define STATIC_RING_COLOR CRGB(0,149,255)   // Color for the outer ring in static mode
   #define STATIC_LOGO_COLOR CRGB(0,149,255)   // Color for the inner logo in static mode
   #define RINGFIRST false // change this to <true> if you have wired the ring first
-#endif  // TWENTYONEPILOTS
+  #define HORIZONTAL_BEFORE_VERTICAL true // change this to <true> if you have wired the horizontal strip before the vertical
+#endif  // THINGIVERSE
 
 /*###################### LOGO CONFIG END ######################*/
 
@@ -1488,7 +1488,11 @@ void thingiverse()  // twenty one pilots
 
   // Several colored dots, weaving in and out of sync with each other
   curhue = thishue; // Reset the hue values.
-  fadeToBlackBy(leds, NUM_LEDS, faderate);
+  if (RINGFIRST)
+  {
+    fadeToBlackBy(leds, RING_LENGTH, faderate);
+  }
+  else fadeToBlackBy(leds + VERTICAL_LENGTH + HORIZONTAL_LENGTH, VERTICAL_LENGTH + HORIZONTAL_LENGTH + RING_LENGTH, faderate);
   for (int i = 0; i < numdots; i++) {
     if(RINGFIRST)leds[beatsin16(basebeat + i + numdots, 0, RING_LENGTH)] += CHSV(curhue, thissat, thisbright);
     else leds[beatsin16(basebeat + i + numdots, VERTICAL_LENGTH + HORIZONTAL_LENGTH, RING_LENGTH + VERTICAL_LENGTH + HORIZONTAL_LENGTH)] += CHSV(curhue, thissat, thisbright);
@@ -1512,22 +1516,108 @@ void thingiverse()  // twenty one pilots
   prevpos = pos;
   */
   //uint8_t b = beatsin8(10, 200, 255);
+  
+  uint8_t pos = 0;
+  uint8_t spd = 100;
+  uint8_t b = 255;
+  bool even = true;
+  if ((HORIZONTAL_LENGTH / 2.00) > (int)(HORIZONTAL_LENGTH / 2.00))even = false;
+
+  if (!even)
+  {
+    //pos = beatsin8(spd, 0, VERTICAL_LENGTH + (HORIZONTAL_LENGTH - 1) / 2);
+    pos = beatsaw8(spd, 0, VERTICAL_LENGTH + (HORIZONTAL_LENGTH - 1) / 2);
+    b = beatsaw8(spd*2, 255/2, 255);
+  }
+  else
+  {
+    //pos = beatsin8(spd, 0, VERTICAL_LENGTH + (HORIZONTAL_LENGTH - 2) / 2);
+  }
+  if (!even)
+  {
+    if (pos < VERTICAL_LENGTH) 
+    {
+      if (HORIZONTAL_BEFORE_VERTICAL)
+      {
+        if(!RINGFIRST) leds[HORIZONTAL_LENGTH + VERTICAL_LENGTH - pos - 1] = CHSV(145, 255, b);
+        else { leds[HORIZONTAL_LENGTH + VERTICAL_LENGTH - pos - 1 + RING_LENGTH] = CHSV(145, 255, b); }
+      }
+      else
+      {
+        if (!RINGFIRST) leds[VERTICAL_LENGTH - pos - 1] = CHSV(145, 255, b);
+        else { leds[VERTICAL_LENGTH - pos - 1 + RING_LENGTH] = CHSV(145, 255, b); }
+      }
+    }
+    else if (pos == VERTICAL_LENGTH)
+    {
+      if (!RINGFIRST)
+      {
+        leds[(HORIZONTAL_LENGTH/2)] = CHSV(145, 255, b);
+      }
+      else
+      {
+        leds[(HORIZONTAL_LENGTH / 2) + RING_LENGTH] = CHSV(145, 255, b);
+      }
+    }
+    else
+    {
+      if (HORIZONTAL_BEFORE_VERTICAL)
+      {
+        if (!RINGFIRST)
+        {
+          leds[HORIZONTAL_LENGTH - pos] = CHSV(145, 255, b);
+          leds[pos-1] = CHSV(145, 255, b);
+        }
+        else 
+        {
+          leds[HORIZONTAL_LENGTH - pos + RING_LENGTH] = CHSV(145, 255, b);
+          leds[pos - 1 + RING_LENGTH] = CHSV(145, 255, b);
+        }
+      }
+      else
+      {
+        if (!RINGFIRST)
+        {
+          leds[HORIZONTAL_LENGTH - pos + VERTICAL_LENGTH] = CHSV(145, 255, b);
+          leds[pos - 1 + VERTICAL_LENGTH] = CHSV(145, 255, b);
+        }
+        else
+        {
+          leds[HORIZONTAL_LENGTH - pos + RING_LENGTH + VERTICAL_LENGTH] = CHSV(145, 255, b);
+          leds[pos - 1 + RING_LENGTH + VERTICAL_LENGTH] = CHSV(145, 255, b);
+        }
+      }
+    }
+  }
+  if (!RINGFIRST) 
+  {
+    //fadeToBlackBy(leds, HORIZONTAL_LENGTH + VERTICAL_LENGTH, 50);
+    fadeLightBy(leds, HORIZONTAL_LENGTH + VERTICAL_LENGTH, 5);
+  }
+  else
+  {
+    fadeLightBy(leds + RING_LENGTH, HORIZONTAL_LENGTH + VERTICAL_LENGTH, 5);
+  }
+
+  /*
   uint8_t b = 255;
   uint8_t pos = 0;
   if (RINGFIRST)
   {
-    pos = beatsin8(60, RING_LENGTH, RING_LENGTH + VERTICAL_LENGTH + HORIZONTAL_LENGTH);
-    fadeToBlackBy(leds + RING_LENGTH, RING_LENGTH+VERTICAL_LENGTH + HORIZONTAL_LENGTH, 0);
+    pos = beatsin8(30, RING_LENGTH, RING_LENGTH + VERTICAL_LENGTH + HORIZONTAL_LENGTH);
+    fadeToBlackBy(leds + RING_LENGTH, RING_LENGTH+VERTICAL_LENGTH + HORIZONTAL_LENGTH, 10);
+    
   }
   else
   {
-    pos = beatsin8(60, 0, VERTICAL_LENGTH + HORIZONTAL_LENGTH);
-    fadeToBlackBy(leds, VERTICAL_LENGTH + HORIZONTAL_LENGTH, 0);
+    pos = beatsin8(30, 0, VERTICAL_LENGTH + HORIZONTAL_LENGTH);
+    fadeToBlackBy(leds, VERTICAL_LENGTH + HORIZONTAL_LENGTH, 10);
+    
   }
   //if (pos == 0 && RINGFIRST == false)fadeToBlackBy(leds, 1, 50);
   //else if(pos == RING_LENGTH && RINGFIRST == true)fadeToBlackBy(leds+RING_LENGTH, 1, 50);
   leds[pos] = CHSV(145, 255, b);
-  
+  */
 }
 #endif THINGIVERSE
 
