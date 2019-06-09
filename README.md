@@ -7,6 +7,15 @@ This is a fork of [jasoncoon's esp8266 fastled webserver](https://github.com/jas
 
 ###### *click on the image to get to the youtube video*
 
+
+## Important!
+
+**FastLED 3.2.7 & 3.2.8 DOES NOT WORK**
+
+**esp8266 2.5.0 and above causes compilation errors**
+
+**Arduino IDE 1.8.9 and above might cause Sketch-Data-Uploading Issues**
+
 Hardware
 --------
 
@@ -74,7 +83,7 @@ The app is installed via the Arduino IDE which can be [downloaded here](https://
 The app depends on the following libraries. They must either be downloaded from GitHub and placed in the Arduino 'libraries' folder, or installed as [described here](https://www.arduino.cc/en/Guide/Libraries) by using the Arduino library manager.
 
 - [FastLED](https://github.com/FastLED/FastLED)
-- [Arduino WebSockets](https://github.com/Links2004/arduinoWebSockets)
+
 
 Download the app code from GitHub using the **Releases** section on [GitHub](https://github.com/NimmLor/esp8266-logo-webserver/releases) and download the ZIP file. Decompress the ZIP file in your Arduino sketch folder. Rename the folder from *esp8266-logo-webserver-master* to *esp8266-logo-webserver*
 
