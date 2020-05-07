@@ -1,4 +1,8 @@
-Fastled Logo Webserver
+# This repo has been merged and moved [here](https://github.com/NimmLor/esp8266-fastled-iot-webserver)
+
+https://github.com/NimmLor/esp8266-fastled-iot-webserver
+
+# LEGACY Fastled Logo Webserver
 =========
 
 This is a fork of [jasoncoon's esp8266 fastled webserver](https://github.com/jasoncoon/esp8266-fastled-webserver) that was adapted to control the colors of my  [Animated RGB Logos](https://www.thingiverse.com/Surrbradl08/designs).
